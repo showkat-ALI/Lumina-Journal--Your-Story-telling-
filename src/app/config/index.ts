@@ -9,4 +9,5 @@ export default {
   bcrypt_salt_rounds: process.env.BCRYPT_SALT_ROUNDS,
   default_password: process.env.DEFAULT_PASS,
   NODE_ENV: process.env.NODE_ENV,
+  PRIVATE_KEY: process.env.PRIVATE_KEY,
 };

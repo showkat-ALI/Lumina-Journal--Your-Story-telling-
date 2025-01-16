@@ -15,7 +15,7 @@ app.use(express.json());
 app.use(cors());
 
 // application routes
-app.use('/api/v1', router);
+app.use('/api', router);
 
 const test = (req: Request, res: Response) => {
   const a = 10;

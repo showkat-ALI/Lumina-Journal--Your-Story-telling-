@@ -1,8 +1,9 @@
 export type TUser = {
-  id: string;
   password: string;
-  needsPasswordChange: boolean;
-  role: 'admin' | 'student' | 'faculty';
+  role: 'admin' | 'user';
   status: 'in-progress' | 'blocked';
   isDeleted: boolean;
+  name: string;
+  email: string;
+  isBlocked: boolean;
 };

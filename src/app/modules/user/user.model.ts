@@ -4,7 +4,11 @@ import config from '../../config';
 import { TUser } from './user.interface';
 const userSchema = new Schema<TUser>(
   {
-    id: {
+    name: {
+      type: String,
+      required: true,
+    },
+    email: {
       type: String,
       required: true,
       unique: true,
@@ -13,13 +17,11 @@ const userSchema = new Schema<TUser>(
       type: String,
       required: true,
     },
-    needsPasswordChange: {
-      type: Boolean,
-      default: true,
-    },
+
     role: {
       type: String,
-      enum: ['student', 'faculty', 'admin'],
+      enum: ['admin', 'user'],
+      default: 'user',
     },
     status: {
       type: String,
