@@ -16,8 +16,21 @@ const createABlog = catchAsync(async (req, res) => {
     data: result,
   });
 });
+const deleteABlog = catchAsync(async (req, res) => {
+  const blogID = req.params.id;
+  const header = req.headers['authorization'];
+
+  await blogServices.deleteABlogFromDB(header, blogID);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Blog is deleted succesSfully',
+    data: {},
+  });
+});
 const updateBlog = catchAsync(async (req, res) => {
-  const blogID = req.params;
+  const blogID = req.params.id;
   const userData = req.body;
   const header = req.headers['authorization'];
 
@@ -30,8 +43,20 @@ const updateBlog = catchAsync(async (req, res) => {
     data: result,
   });
 });
+const getAllBlogs = catchAsync(async (req, res) => {
+  const result = await blogServices.getAllBlogsFromDB(req.query);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Blog are retrieved succesSfully',
+    data: result,
+  });
+});
 
 export const blogControllers = {
   createABlog,
   updateBlog,
+  deleteABlog,
+  getAllBlogs,
 };

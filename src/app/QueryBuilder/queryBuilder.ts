@@ -1,4 +1,5 @@
-import { FilterQuery, Query } from 'mongoose';
+import { FilterQuery, Query, SortOrder } from 'mongoose';
+import { User } from '../modules/user/user.model';
 
 class QueryBuilder<T> {
   public modelQuery: Query<T[], T>;
@@ -8,42 +9,62 @@ class QueryBuilder<T> {
     this.query = query;
   }
   search(searchableField: string[]) {
-    const searchTerm = this?.query?.searchTerm;
-    if (searchTerm) {
+    const search = this?.query?.search;
+    if (search) {
       this.modelQuery = this.modelQuery.find({
         $or: searchableField.map(
           (field) =>
             ({
-              [field]: { $regex: searchTerm, $options: 'i' },
+              [field]: { $regex: search, $options: 'i' },
             }) as FilterQuery<T>,
         ),
       });
     }
     return this;
   }
-  filter() {
+  async filter() {
     const queryObject = { ...this.query };
-    const excludeFields = ['searchTerm', 'sort', 'limit', 'page', 'fields'];
+    const excludeFields = [
+      'search',
+      'sortBy',
+      'limit',
+      'page',
+      'fields',
+      'sortOrder',
+    ];
     excludeFields.forEach((el) => delete queryObject[el]);
+
+    if (queryObject.filter) {
+      const userID = queryObject.filter as string;
+      const author = await User.findById(userID).exec();
+      if (author) {
+        this.modelQuery = this.modelQuery.find({ 'owner.email': author.email });
+      }
+    }
+
     return this;
+  }
+
+  async execute() {
+    return await this.modelQuery.exec();
   }
   sort() {
-    const sort =
-      (this?.query?.sort as string)?.split(',')?.join('') || '-createdAt';
-    this.modelQuery = this.modelQuery.sort(sort);
+    const sort = this?.query?.sortBy as string;
+    const sortOrder = this?.query?.sortOrder as SortOrder;
+    if (sort) {
+      this.modelQuery = this?.modelQuery?.sort([[sort, sortOrder]]);
+      return this;
+    }
     return this;
   }
-  pagination() {
-    const page = Number(this?.query?.page) || 1;
-    const limit = Number(this?.query?.limit) || 10;
-    const skip = (page - 1) * limit;
-    this.modelQuery = this.modelQuery.skip(skip).limit(limit);
-    return this;
-  }
+
   fields() {
     const fields =
       (this?.query?.fields as string)?.split(',')?.join('') || '-_v';
-    this.modelQuery = this.modelQuery.select(fields);
+    if (fields) {
+      this.modelQuery = this.modelQuery.select(fields);
+      return this;
+    }
     return this;
   }
 }

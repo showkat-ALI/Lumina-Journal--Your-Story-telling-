@@ -4,6 +4,19 @@ import { Blog } from './blog.model';
 import { TBlog } from './blog.interface';
 import AppError from '../../error/AppError';
 import httpStatus from 'http-status';
+import { TAuthorizedData } from '../../generalType/authorizedData';
+import QueryBuilder from '../../QueryBuilder/queryBuilder';
+import { BlogSearchableFields } from './blog.constants';
+const getAllBlogsFromDB = async (query: Record<string, unknown>) => {
+  const blogQuery = new QueryBuilder(Blog.find(), query)
+    .search(BlogSearchableFields)
+    .fields()
+    .sort();
+  await blogQuery.filter();
+
+  const result = blogQuery.modelQuery;
+  console.log(result);
+};
 
 const createABlogIntoDB = async (payload: TBlog, header: any) => {
   try {
@@ -19,22 +32,27 @@ const createABlogIntoDB = async (payload: TBlog, header: any) => {
       );
     }
 
-    const authorizedData = await new Promise((resolve, reject) => {
-      jwt.verify(
-        gotToken,
-        config.PRIVATE_KEY as string,
-        (err: any, decoded: any) => {
-          if (err) {
-            reject(new AppError(httpStatus.BAD_REQUEST, 'Invalid token'));
-          } else {
-            resolve(decoded);
-          }
-        },
-      );
-    });
-
+    const authorizedData: TAuthorizedData = await new Promise(
+      (resolve, reject) => {
+        jwt.verify(
+          gotToken,
+          config.PRIVATE_KEY as string,
+          (err: any, decoded: any) => {
+            if (err) {
+              reject(new AppError(httpStatus.BAD_REQUEST, 'Invalid token'));
+            } else {
+              resolve(decoded);
+            }
+          },
+        );
+      },
+    );
+    const { email, role } = authorizedData;
     try {
-      const newBlog = await Blog.create(payload);
+      const newBlog = await Blog.create({
+        ...payload,
+        owner: { email: email, role: role },
+      });
       return { _id: newBlog._id, author: authorizedData };
     } catch (error) {
       throw new AppError(httpStatus.BAD_REQUEST, 'Failed to create blog');
@@ -61,30 +79,69 @@ const updateABlogFromDB = async (
       );
     }
 
-    const authorizedData = await new Promise((resolve, reject) => {
-      jwt.verify(
-        gotToken,
-        config.PRIVATE_KEY as string,
-        (err: any, decoded: any) => {
-          if (err) {
-            reject(new AppError(httpStatus.BAD_REQUEST, 'Invalid token'));
-          } else {
-            resolve(decoded);
-          }
-        },
-      );
-    });
-
-    try {
-      if (authorizedData) {
-        const newBlog = await Blog.findOneAndUpdate(
-          { _id: blogID },
-          { payload },
+    const authorizedData: TAuthorizedData = await new Promise(
+      (resolve, reject) => {
+        jwt.verify(
+          gotToken,
+          config.PRIVATE_KEY as string,
+          (err: any, decoded: any) => {
+            if (err) {
+              reject(new AppError(httpStatus.BAD_REQUEST, 'Invalid token'));
+            } else {
+              resolve(decoded);
+            }
+          },
         );
-        return newBlog;
-      }
-    } catch (error) {
-      throw new AppError(httpStatus.BAD_REQUEST, 'Failed to create blog');
+      },
+    );
+
+    const retrievedBlog = await Blog.findOne({ _id: blogID });
+    if (authorizedData?.email === retrievedBlog?.owner?.email) {
+      const updatedBlog = await Blog.findOneAndUpdate({ _id: blogID }, payload);
+      return updatedBlog;
+    } else {
+      throw new AppError(httpStatus.BAD_REQUEST, 'Something went wrong!');
+    }
+  } catch (error) {
+    throw new AppError(httpStatus.BAD_REQUEST, 'Something went wrong!');
+  }
+};
+const deleteABlogFromDB = async (header: any, blogID: string) => {
+  try {
+    let gotToken;
+
+    if (header && header.startsWith('Bearer ')) {
+      const bearer = header.split(' ');
+      gotToken = bearer[1];
+    } else {
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        'Authorization header is missing or malformed',
+      );
+    }
+
+    const authorizedData: TAuthorizedData = await new Promise(
+      (resolve, reject) => {
+        jwt.verify(
+          gotToken,
+          config.PRIVATE_KEY as string,
+          (err: any, decoded: any) => {
+            if (err) {
+              reject(new AppError(httpStatus.BAD_REQUEST, 'Invalid token'));
+            } else {
+              resolve(decoded);
+            }
+          },
+        );
+      },
+    );
+
+    const retrievedBlog = await Blog.findOne({ _id: blogID });
+    if (authorizedData?.email === retrievedBlog?.owner?.email) {
+      const updatedBlog = await Blog.findOneAndDelete({ _id: blogID });
+      return updatedBlog;
+    } else {
+      throw new AppError(httpStatus.BAD_REQUEST, 'Something went wrong!');
     }
   } catch (error) {
     throw new AppError(httpStatus.BAD_REQUEST, 'Something went wrong!');
@@ -94,4 +151,6 @@ const updateABlogFromDB = async (
 export const blogServices = {
   createABlogIntoDB,
   updateABlogFromDB,
+  deleteABlogFromDB,
+  getAllBlogsFromDB,
 };

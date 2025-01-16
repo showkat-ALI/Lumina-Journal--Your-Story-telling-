@@ -23,6 +23,9 @@ const blogSchema = new Schema<TBlog>(
       type: Boolean,
       default: false,
     },
+    owner: {
+      type: Object,
+    },
   },
   {
     timestamps: true,
