@@ -4,7 +4,7 @@
 
 ### Sorting
 ```typescript
-// filepath: /e:/Level-2-Assignments/Assignment-3/Lumina Journal/src/app/QueryBuilder/queryBuilder.ts
+// filepath/Lumina Journal/src/app/QueryBuilder/queryBuilder.ts
 sort() {
   const sort = this?.query?.sortBy as string;
   const sortOrder = this?.query?.sortOrder as SortOrder;
@@ -18,7 +18,7 @@ sort() {
 
 ### Searching
 ```typescript
-// filepath: /e:/Level-2-Assignments/Assignment-3/Lumina Journal/src/app/QueryBuilder/queryBuilder.ts
+// filepath/Lumina Journal/src/app/QueryBuilder/queryBuilder.ts
 search(searchableField: string[]) {
   const search = this?.query?.search;
   if (search) {
@@ -37,7 +37,7 @@ search(searchableField: string[]) {
 
 ### Filtering
 ```typescript
-// filepath: /e:/Level-2-Assignments/Assignment-3/Lumina Journal/src/app/QueryBuilder/queryBuilder.ts
+// filepath/Lumina Journal/src/app/QueryBuilder/queryBuilder.ts
 async filter() {
   const queryObject = { ...this.query };
   const excludeFields = [
