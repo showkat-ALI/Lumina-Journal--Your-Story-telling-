@@ -10,12 +10,12 @@ import { BlogSearchableFields } from './blog.constants';
 const getAllBlogsFromDB = async (query: Record<string, unknown>) => {
   const blogQuery = new QueryBuilder(Blog.find(), query)
     .search(BlogSearchableFields)
-    .fields()
-    .sort();
-  await blogQuery.filter();
+    .sort()
+    .fields();
 
-  const result = blogQuery.modelQuery;
+  const result = await blogQuery.filter(); // Await the filter method to get the results
   console.log(result);
+  // return result;
 };
 
 const createABlogIntoDB = async (payload: TBlog, header: any) => {
