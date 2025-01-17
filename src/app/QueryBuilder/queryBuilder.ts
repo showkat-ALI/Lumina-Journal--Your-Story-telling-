@@ -42,12 +42,9 @@ class QueryBuilder<T> {
       }
     }
 
-    return this;
+    return this.modelQuery.exec();
   }
 
-  async execute() {
-    return await this.modelQuery.exec();
-  }
   sort() {
     const sort = this?.query?.sortBy as string;
     const sortOrder = this?.query?.sortOrder as SortOrder;
