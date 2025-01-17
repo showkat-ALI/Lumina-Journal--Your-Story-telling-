@@ -1,4 +1,4 @@
-import { ObjectId } from 'mongoose';
+import { Model, ObjectId } from 'mongoose';
 type Owner = {
   email: string;
   role: string;
@@ -11,3 +11,6 @@ export type TBlog = {
   _id: ObjectId;
   owner: Owner;
 };
+export interface BlogModel extends Model<TBlog> {
+  isBlogExists(id: string): Promise<TBlog | null>;
+}

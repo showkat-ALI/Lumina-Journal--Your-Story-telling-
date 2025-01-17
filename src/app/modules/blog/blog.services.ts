@@ -14,7 +14,7 @@ const getAllBlogsFromDB = async (query: Record<string, unknown>) => {
     .fields();
 
   const result = await blogQuery.filter(); // Await the filter method to get the results
-  console.log(result);
+  return result;
   // return result;
 };
 
@@ -47,13 +47,15 @@ const createABlogIntoDB = async (payload: TBlog, header: any) => {
         );
       },
     );
-    const { email, role } = authorizedData;
+    const { email, role, isBlocked } = authorizedData;
     try {
-      const newBlog = await Blog.create({
-        ...payload,
-        owner: { email: email, role: role },
-      });
-      return { _id: newBlog._id, author: authorizedData };
+      if (!isBlocked) {
+        const newBlog = await Blog.create({
+          ...payload,
+          owner: { email: email, role: role },
+        });
+        return { _id: newBlog._id, author: authorizedData };
+      }
     } catch (error) {
       throw new AppError(httpStatus.BAD_REQUEST, 'Failed to create blog');
     }
@@ -137,7 +139,10 @@ const deleteABlogFromDB = async (header: any, blogID: string) => {
     );
 
     const retrievedBlog = await Blog.findOne({ _id: blogID });
-    if (authorizedData?.email === retrievedBlog?.owner?.email) {
+    if (
+      authorizedData?.email === retrievedBlog?.owner?.email ||
+      authorizedData?.role === 'admin'
+    ) {
       const updatedBlog = await Blog.findOneAndDelete({ _id: blogID });
       return updatedBlog;
     } else {

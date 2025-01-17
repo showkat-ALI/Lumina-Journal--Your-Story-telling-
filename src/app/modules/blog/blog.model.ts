@@ -1,5 +1,5 @@
 import { Schema, model } from 'mongoose';
-import { TBlog } from './blog.interface';
+import { BlogModel, TBlog } from './blog.interface';
 const blogSchema = new Schema<TBlog>(
   {
     _id: {
@@ -31,5 +31,25 @@ const blogSchema = new Schema<TBlog>(
     timestamps: true,
   },
 );
+blogSchema.pre('find', function (next) {
+  this.find({ isDeleted: { $ne: true } });
+  next();
+});
 
-export const Blog = model<TBlog>('Blog', blogSchema);
+blogSchema.pre('findOne', function (next) {
+  this.find({ isDeleted: { $ne: true } });
+  next();
+});
+
+blogSchema.pre('aggregate', function (next) {
+  this.pipeline().unshift({ $match: { isDeleted: { $ne: true } } });
+  next();
+});
+
+//creating a custom static method
+blogSchema.statics.isBlogExists = async function (id: string) {
+  const existingBlog = await Blog.findOne({ id });
+  return existingBlog;
+};
+
+export const Blog = model<TBlog, BlogModel>('Blog', blogSchema);

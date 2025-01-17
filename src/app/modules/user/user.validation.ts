@@ -22,7 +22,7 @@ const userCreationSchema = z.object({
     isDeleted: z.boolean().optional(),
     name: z.string(),
     email: z.string().email(),
-    isBlocked: z.boolean().default(false).optional(),
+    isBlocked: z.boolean().optional(),
   }),
 });
 const userLoginSchema = z.object({
@@ -33,7 +33,7 @@ const userLoginSchema = z.object({
       .enum(['in-progress', 'blocked'])
       .default('in-progress')
       .optional(),
-    isDeleted: z.boolean().optional(),
+    isDeleted: z.boolean().optional().default(false),
     name: z.string().optional(),
     email: z.string().email(),
     isBlocked: z.boolean().default(false).optional(),

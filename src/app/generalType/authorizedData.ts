@@ -5,4 +5,5 @@ export type TAuthorizedData = {
   isDeleted: boolean;
   iat: number;
   exp: number;
+  isBlocked: boolean;
 };

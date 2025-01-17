@@ -25,7 +25,34 @@ const loginUser = catchAsync(async (req, res) => {
     data: result,
   });
 });
+const getAllUser = catchAsync(async (req, res) => {
+  const header = req.headers['authorization'];
+
+  const result = await UserServices.getAllUsersFromDB(header);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'User get successfully',
+    data: result,
+  });
+});
+
+const blockUser = catchAsync(async (req, res) => {
+  const header = req.headers['authorization'];
+  const userId = req.params.userId;
+  const result = await UserServices.blockUsersFromDB(header, userId);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'User blocked successfully',
+    data: result,
+  });
+});
 export const UserControllers = {
   registerUser,
   loginUser,
+  getAllUser,
+  blockUser,
 };

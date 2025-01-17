@@ -1,7 +1,7 @@
 import bcrypt from 'bcrypt';
 import { Schema, model } from 'mongoose';
 import config from '../../config';
-import { TUser } from './user.interface';
+import { TUser, UserModel } from './user.interface';
 const userSchema = new Schema<TUser>(
   {
     name: {
@@ -32,6 +32,10 @@ const userSchema = new Schema<TUser>(
       type: Boolean,
       default: false,
     },
+    isBlocked: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
@@ -54,5 +58,25 @@ userSchema.post('save', function (doc, next) {
   doc.password = '';
   next();
 });
+userSchema.pre('find', function (next) {
+  this.find({ isDeleted: { $ne: true } });
+  next();
+});
 
-export const User = model<TUser>('User', userSchema);
+userSchema.pre('findOne', function (next) {
+  this.findOne({ isDeleted: { $ne: true } });
+  next();
+});
+
+userSchema.pre('aggregate', function (next) {
+  this.pipeline().unshift({ $match: { isDeleted: { $ne: true } } });
+  next();
+});
+
+//creating a custom static method
+userSchema.statics.isUserExists = async function (id: string) {
+  const existingUser = await User.findOne({ id });
+  return existingUser;
+};
+
+export const User = model<TUser, UserModel>('User', userSchema);

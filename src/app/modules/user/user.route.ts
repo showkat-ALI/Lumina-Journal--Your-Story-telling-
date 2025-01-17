@@ -14,5 +14,15 @@ router.post(
   validateRequest(userSchema.userLoginSchema),
   UserControllers.loginUser,
 );
+router.get(
+  '/users',
+
+  UserControllers.getAllUser,
+);
+router.post(
+  '/users/:userId/block',
+
+  UserControllers.blockUser,
+);
 
 export const UserRoutes = router;
